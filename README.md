@@ -1,18 +1,10 @@
-# Node.js API Starter Kit &nbsp; <a href="https://github.com/kriasoft/nodejs-api-starter/stargazers"><img src="https://img.shields.io/github/stars/kriasoft/nodejs-api-starter.svg?style=social&label=Star&maxAge=3600" height="20"></a> <a href="https://twitter.com/ReactStarter"><img src="https://img.shields.io/twitter/follow/ReactStarter.svg?style=social&label=Follow&maxAge=3600" height="20"></a>
-
-Boilerplate and tooling for authoring **data API** backends with **[Node.js][node]** and
-**[GraphQL][gql]**. It is best suited for developing a **GraphQL API** endpoint as a standalone
-(micro)service ([demo][demo]), backing up web front-ends and/or mobile apps (see [React Starter
-Kit][rsk], [React Static Boilerplate][rsb] etc). Please, visit our [sponsors](https://www.paypal.me/koistya):
-
-<p align="center"><a href="https://rollbar.com/?utm_source=reactstartkit(github)&utm_medium=link&utm_campaign=reactstartkit(github)"><img src="https://koistya.github.io/files/rollbar-247x48.png" height="24" align="top" /></a> <a href="https://x-team.com/?utm_source=reactstarterkit&utm_medium=github-link&utm_campaign=reactstarterkit-june"><img src="https://koistya.github.io/files/xteam-168x48.png" height="24" align="top" /></a><sup><a href="https://x-team.com/join/?utm_source=reactstarterkit&utm_medium=github-link&utm_campaign=reactstarterkit-june">Hiring</a></sup></p>
+# Seatsupply API &nbsp;
+Official Seatsupply data API.
 
 
 ---
 
-This project was bootstraped with [Node.js API Starter Kit][nodejskit] ([support][gitter]).
-
-<p align="center"><a href="https://graphql-demo.kriasoft.com"><img src="http://koistya.github.io/files/nodejs-api-starter-demo.png" width="600" alt="GraphQL Demo" /><br><sup>https://graphql-demo.kriasoft.com</sup></a></p>
+This project was bootstraped with Node.js API Starter Kit
 
 
 ## Tech Stack
@@ -66,16 +58,15 @@ This project was bootstraped with [Node.js API Starter Kit][nodejskit] ([support
 
 ## Getting Started
 
-Just clone the repo and run `docker-compose up`:
+Just clone the repo, edit the environment variables in the docker-compose file, and run `docker-compose up`:
 
 ```bash
-git clone https://github.com/kriasoft/nodejs-api-starter.git example-api
+git clone https://github.com/castlesb/seatsupply-api.git example-api
 cd example-api                  # Change current directory to the newly created one
 docker-compose up               # Launch Docker containers with the Node.js API app running inside
 ```
 
-The API server must become available at [http://localhost:8080/graphql](http://localhost:8080/graphql)
-([live demo][demo]).
+The API server must become available at [http://localhost:8080/graphql](http://localhost:8080/graphql).
 
 Once the Docker container named `api` is started, the Docker engine executes `node tools/run.js`
 command that installs Node.js dependencies, migrates database schema to the latest version,
@@ -132,16 +123,16 @@ If you keep the original Git history after cloning this repo, you can always fet
 the recent updates back into your project by running:
 
 ```bash
-git remote add nodejs-api-starter https://github.com/kriasoft/nodejs-api-starter.git
+git remote add seatsupply-api https://github.com/castlesb/seatsupply-api.git
 git checkout master
-git fetch nodejs-api-starter
-git merge nodejs-api-starter/master
+git fetch seatsupply-api
+git merge seatsupply-api/master
 docker-compose build --no-cache
 docker-compose run --rm --no-deps api yarn
 docker-compose up
 ```
 
-*NOTE: Try to merge as soon as the new changes land on the master branch in Node.js API Starter
+*NOTE: Try to merge as soon as the new changes land on the master branch in Seatsupply API
 repository, otherwise your project may differ too much from the base/upstream repo.*
 
 
@@ -153,52 +144,12 @@ deploy your app to a remote server simply run:
 ```bash
 node tools/publish <host>       # where <host> is the name of your web server (see ~/.ssh/config)
 ```
-
-Not sure where to deploy your app? [DigitalOcean][do] is a great choice in many cases (get [$10 credit][do])
-
-
-## Contributing
-
-Anyone and everyone is welcome to [contribute](CONTRIBUTING.md). Start by checking out the list of
-[open issues](https://github.com/kriasoft/nodejs-api-starter/issues) marked
-[help wanted](https://github.com/kriasoft/nodejs-api-starter/issues?q=label:"help+wanted").
-However, if you decide to get involved, please take a moment to review the [guidelines](CONTRIBUTING.md).
-
-
-## Reference Articles and Tutorials
-
-* [Stop using JWT for sessions](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/)
-  ([Part 2](http://cryto.net/~joepie91/blog/2016/06/19/stop-using-jwt-for-sessions-part-2-why-your-solution-doesnt-work/))
-  by [Sven Slootweg](https://github.com/joepie91)
-* [How to Safely Store Your Users' Passwords](https://paragonie.com/blog/2016/02/how-safely-store-password-in-2016)
-  by [P.I.E.](https://paragonie.com/)
-* [How to set up Node.js API Starter on Windows 10](https://medium.com/@daveyedwards/how-to-setup-kriasofts-nodejs-api-starter-on-windows-10-a092d6e34882)
-  ([video](https://youtu.be/IV4IsYyfdKI)) by [Davey Edwards](https://twitter.com/daveyedwards)
-* [How to call C/C++ code from Node.js](https://medium.com/@tarkus/how-to-call-c-c-code-from-node-js-86a773033892)
-  by [Konstantin Tarkus](https://twitter.com/koistya)
-
-
-## Related Projects
-
-* [GraphQL.js](https://github.com/graphql/graphql-js) — The JavaScript reference implementation for [GraphQL](http://graphql.org/)
-* [DataLoader](https://github.com/facebook/dataloader) — Batching and caching for GraphQL data access layer
-* [React Starter Kit](https://github.com/kriasoft/react-starter-kit) — Isomorphic web app boilerplate (React, Node.js, Babel, Webpack, CSS Modules)
-* [React Static Boilerplate](https://github.com/kriasoft/react-static-boilerplate) — Single-page application (SPA) starter kit (React, Redux, Webpack, Firebase)
-* [Membership Database](https://github.com/membership/membership.db) — SQL schema boilerplate for user accounts, profiles, roles, and auth claims
-
-
-## License
-
-Copyright © 2016-present Kriasoft. This source code is licensed under the MIT license found in the
-[LICENSE.txt](https://github.com/kriasoft/nodejs-api-starter/blob/master/LICENSE.txt) file.
-
 ---
-Made with ♥ by Konstantin Tarkus ([@koistya](https://twitter.com/koistya), [blog](https://medium.com/@tarkus)) and [contributors](https://github.com/kriasoft/nodejs-api-starter/graphs/contributors)
+Made with ♥ by Brian Castles
 
 
-[nodejskit]: https://github.com/kriasoft/nodejs-api-starter
-[rsk]: https://github.com/kriasoft/react-starter-kit
-[rsb]: https://github.com/kriasoft/react-static-boilerplate
+[nodejskit]: https://github.com/castlesb/seatsupply-api
+[rsk]: https://github.com/castlesb/seatsupply-api
 [node]: https://nodejs.org
 [js]: https://developer.mozilla.org/docs/Web/JavaScript
 [babel]: http://babeljs.io/
@@ -239,4 +190,3 @@ Made with ♥ by Konstantin Tarkus ([@koistya](https://twitter.com/koistya), [bl
 [i18nextmid]: https://github.com/i18next/i18next-express-middleware
 [i18nextback]: https://github.com/i18next/i18next-node-fs-backend
 [jest]: http://facebook.github.io/jest/
-[gitter]: https://gitter.im/kriasoft/nodejs-api-starter

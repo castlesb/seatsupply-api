@@ -1,0 +1,69 @@
+{{#extend "layout"}} {{#content "main"}}
+<p>
+  <strong>{{t "Hi" }} {{order.first_name}},</strong>
+</p>
+<p align="center">
+  {{t "Your tickets have been confirmed!"}}
+  <br> {{t "Click the link below to view your tickets!"}}
+</p>
+<table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
+  <tbody>
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tbody>
+            <tr>
+              <td>
+                <a href="http://0.0.0.0:8080/orders/{{order.id}}/pdf" target="_blank">Download</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div>
+  <strong>Order Details</strong>
+  <table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>Order id</td>
+      <td>{{order.id}}</td>
+    </tr>
+    <tr>
+      <td>Order date</td>
+      <td>{{order_datet}}</td>
+    </tr>
+    <tr>
+      <td>Event</td>
+      <td>{{event.name}}</td>
+    </tr>
+    <tr>
+      <td>Venue</td>
+      <td>{{event.venue.name}}</td>
+    </tr>
+    <tr>
+      <td>Time</td>
+      <td>{{event_start_date}}</td>
+    </tr>
+    <tr>
+      <td>Price per ticket</td>
+      <td>{{price}}</td>
+    </tr>
+    <tr>
+      <td>Quantity</td>
+      <td>{{quantity}}</td>
+    </tr>
+    <tr>
+      <td>Total cost</td>
+      <td>{{total}}</td>
+    </tr>
+    <tr>
+      <td>Name</td>
+      <td>{{order.first_name}} {{order.last_name}}</td>
+    </tr>
+  </table>
+</div>
+
+{{/content}} {{/extend}}

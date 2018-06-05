@@ -1,10 +1,3 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 /* eslint-disable global-require */
 
@@ -19,12 +12,18 @@ export const { nodeInterface, nodeField, nodesField } = nodeDefinitions(
     switch (type) {
       case 'User':
         return context.userById.load(id).then(assignType('User'));
-      case 'Email':
-        return context.emailById.load(id).then(assignType('Email'));
-      case 'Story':
-        return context.storyById.load(id).then(assignType('Story'));
-      case 'Comment':
-        return context.commentById.load(id).then(assignType('Comment'));
+      case 'Promoter':
+        return context.promoterById.load(id).then(assignType('Promoter'));
+      case 'Event':
+        return context.eventById.load(id).then(assignType('Event'));
+      case 'Taxonomy':
+        return context.taxonomyById.load(id).then(assignType('Taxonomy'));
+      case 'Offer':
+        return context.offerById.load(id).then(assignType('Offer'));
+      case 'Order':
+        return context.orderById.load(id).then(assignType('Order'));
+      case 'Ticket':
+        return context.ticketById.load(id).then(assignType('Ticket'));
       default:
         return null;
     }
@@ -33,12 +32,18 @@ export const { nodeInterface, nodeField, nodesField } = nodeDefinitions(
     switch (getType(obj)) {
       case 'User':
         return require('./user/UserType').default;
-      case 'Email':
-        return require('./user/EmailType').default;
-      case 'Story':
-        return require('./story/StoryType').default;
-      case 'Comment':
-        return require('./comment/CommentType').default;
+      case 'Promoter':
+        return require('./promoter/PromoterType').default;
+      case 'Event':
+        return require('./event/EventType').default;
+      case 'Taxonomy':
+        return require('./event/TaxonomyType').default;
+      case 'Offer':
+        return require('./offer/OfferType').default;
+      case 'Order':
+        return require('./order/OrderType').default;
+      case 'Ticket':
+        return require('./order/TicketType').default;
       default:
         return null;
     }

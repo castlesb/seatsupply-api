@@ -1,18 +1,18 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 
 import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 
 import userQueries from './user/queries';
-import storyQueries from './story/queries';
-import storyMutations from './story/mutations';
-import commentMutations from './comment/mutations';
+import userMutations from './user/mutations';
+import promoterQueries from './promoter/queries';
+import promoterMutations from './promoter/mutations';
+import eventQueries from './event/queries';
+import eventMutations from './event/mutations';
+import offerQueries from './offer/queries';
+import offerMutations from './offer/mutations';
+import orderQueries from './order/queries';
+import orderMutations from './order/mutations';
+import search from './search/queries';
 import { nodeField, nodesField } from './node';
 
 export default new GraphQLSchema({
@@ -22,14 +22,21 @@ export default new GraphQLSchema({
       node: nodeField,
       nodes: nodesField,
       ...userQueries,
-      ...storyQueries,
+      ...promoterQueries,
+      ...eventQueries,
+      ...offerQueries,
+      ...orderQueries,
+      ...search,
     },
   }),
   mutation: new GraphQLObjectType({
     name: 'Mutation',
     fields: {
-      ...storyMutations,
-      ...commentMutations,
+      ...userMutations,
+      ...promoterMutations,
+      ...eventMutations,
+      ...offerMutations,
+      ...orderMutations,
     },
   }),
 });

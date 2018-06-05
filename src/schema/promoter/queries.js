@@ -6,19 +6,12 @@ import {
   cursorToOffset,
 } from 'graphql-relay';
 
-import UserType from './UserType';
-import type Context from '../../Context';
 import db from '../../db';
+import type Context from '../../Context';
+import PromoterConnection from './PromoterConnection';
 
-const me = {
-  type: UserType,
-  resolve(root: any, args: any, ctx: Context) {
-    return ctx.user && ctx.userById.load(ctx.user.id);
-  },
-};
-
-const users = {
-  type: require('./UserConnection').default,
+const promoters = {
+  type: PromoterConnection,
   args: forwardConnectionArgs,
   async resolve(root: any, args: any, ctx: Context) {
     const limit = typeof args.first === 'undefined' ? '10' : args.first;
@@ -26,16 +19,16 @@ const users = {
 
     const [data, totalCount] = await Promise.all([
       db
-        .table('users')
+        .table('promoters')
         .orderBy('created_at', 'desc')
         .limit(limit)
         .offset(offset)
         .then(rows => {
-          rows.forEach(x => ctx.userById.prime(x.id, x));
+          rows.forEach(x => ctx.promoterById.prime(x.id, x));
           return rows;
         }),
       db
-        .table('users')
+        .table('promoters')
         .count()
         .then(x => x[0].count),
     ]);
@@ -51,6 +44,5 @@ const users = {
 };
 
 export default {
-  me,
-  users,
+  promoters,
 };

@@ -1,10 +1,3 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 
 import path from 'path';
@@ -55,6 +48,8 @@ i18next
 const app = express();
 
 app.set('trust proxy', 'loopback');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 app.use(
   cors({
@@ -92,7 +87,11 @@ app.use(accountRoutes);
 if (process.env.NODE_ENV !== 'production') {
   // A route for testing email templates
   app.get('/:email(email|emails)/:template', (req, res) => {
-    const message = email.render(req.params.template, { t: req.t, v: 123 });
+    const message = email.render(req.params.template, {
+      t: req.t,
+      v: 123,
+      user: req.user,
+    });
     res.send(message.html);
   });
 
@@ -101,14 +100,14 @@ if (process.env.NODE_ENV !== 'production') {
     if (req.user) {
       res.send(
         `<p>${req.t('Welcome, {{user}}!', {
-          user: req.user.displayName,
+          user: req.user.first_name,
         })} (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">${req.t(
           'log out',
         )}</a>)</p>`,
       );
     } else {
       res.send(
-        `<p>${req.t('Welcome, guest!')} (<a href="/login/facebook">${req.t(
+        `<p>${req.t('Welcome, guest!')} (<a href="/login">${req.t(
           'sign in',
         )}</a>)</p>`,
       );

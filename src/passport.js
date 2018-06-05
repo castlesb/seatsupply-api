@@ -1,14 +1,9 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 /* eslint-disable no-param-reassign, no-underscore-dangle, max-len */
 
+import bcrypt from 'bcryptjs';
 import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
@@ -16,20 +11,45 @@ import { Strategy as TwitterStrategy } from 'passport-twitter';
 import db from './db';
 
 passport.serializeUser((user, done) => {
-  done(null, {
-    id: user.id,
-    displayName: user.displayName,
-    imageUrl: user.imageUrl,
-  });
+  done(null, user);
 });
 
 passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
+async function localLogin(req, email, password) {
+  let user;
+
+  if (req.user) {
+    user = await db
+      .table('users')
+      .where({ id: req.user.id })
+      .first();
+  } else {
+    user = await db
+      .table('users')
+      .where({ email: email.toLowerCase() })
+      .first();
+
+    if (!user) {
+      throw new Error(`Email ${email} not found.`);
+    }
+
+    const comparePassword = await bcrypt.compare(password, user.password_hash);
+    if (!comparePassword) {
+      throw new Error('Invalid password');
+    }
+  }
+
+  delete user.password_hash;
+
+  return user;
+}
+
 // Creates or updates the external login credentials
 // and returns the currently authenticated user.
-async function login(req, provider, profile, tokens) {
+async function externalLogin(req, provider, profile, tokens) {
   let user;
 
   if (req.user) {
@@ -118,6 +138,49 @@ async function login(req, provider, profile, tokens) {
   };
 }
 
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: 'email',
+      passReqToCallback: true,
+    },
+    async (req, email, password, done) => {
+      try {
+        let user;
+
+        if (req.user) {
+          user = await db
+            .table('users')
+            .where({ id: req.user.id })
+            .first();
+        } else {
+          user = await db
+            .table('users')
+            .where({ email: email.toLowerCase() })
+            .first();
+
+          if (!user) {
+            return done(null, false, { message: `Email ${email} not found.` });
+          }
+
+          const comparePassword = await bcrypt.compare(
+            password,
+            user.password_hash,
+          );
+          if (!comparePassword) {
+            return done(null, false, { message: `Invalid password` });
+          }
+        }
+
+        delete user.password_hash;
+        done(null, user);
+      } catch (err) {
+        done(err);
+      }
+    },
+  ),
+);
+
 // https://github.com/jaredhanson/passport-google-oauth2
 passport.use(
   new GoogleStrategy(
@@ -129,7 +192,7 @@ passport.use(
     },
     async (req, accessToken, refreshToken, profile, done) => {
       try {
-        const user = await login(req, 'google', profile, {
+        const user = await externalLogin(req, 'google', profile, {
           accessToken,
           refreshToken,
         });
@@ -172,36 +235,9 @@ passport.use(
         profile.displayName =
           profile.displayName ||
           `${profile.name.givenName} ${profile.name.familyName}`;
-        const user = await login(req, 'facebook', profile, {
+        const user = await externalLogin(req, 'facebook', profile, {
           accessToken,
           refreshToken,
-        });
-        done(null, user);
-      } catch (err) {
-        done(err);
-      }
-    },
-  ),
-);
-
-// https://github.com/jaredhanson/passport-twitter
-passport.use(
-  new TwitterStrategy(
-    {
-      consumerKey: process.env.TWITTER_KEY,
-      consumerSecret: process.env.TWITTER_SECRET,
-      callbackURL: '/login/twitter/return',
-      includeEmail: true,
-      includeStatus: false,
-      passReqToCallback: true,
-    },
-    async (req, token, tokenSecret, profile, done) => {
-      try {
-        if (profile.emails && profile.emails.length)
-          profile.emails[0].verified = true;
-        const user = await login(req, 'twitter', profile, {
-          token,
-          tokenSecret,
         });
         done(null, user);
       } catch (err) {

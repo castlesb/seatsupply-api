@@ -1,10 +1,3 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 
 import fs from 'fs';
@@ -17,12 +10,24 @@ import handlebars from 'handlebars';
 const { from, ...config } =
   process.env.NODE_ENV === 'production'
     ? {
-        from: 'no-reply@example.com',
-        streamTransport: true,
+        from: 'do-not-reply@seatsupply.com',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.GMAIL,
+          pass: process.env.GMAIL_PASSWORD,
+        },
       }
     : {
-        from: 'no-reply@example.com',
-        streamTransport: true,
+        from: 'do-not-reply@seatsupply.com',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.GMAIL,
+          pass: process.env.GMAIL_PASSWORD,
+        },
       };
 
 const templates = new Map();

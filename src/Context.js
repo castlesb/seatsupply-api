@@ -1,10 +1,3 @@
-/**
- * Copyright © 2016-present Kriasoft.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
 /* @flow */
 
 import DataLoader from 'dataloader';
@@ -13,9 +6,17 @@ import type { t as Translator } from 'i18next';
 
 import db from './db';
 import { mapTo, mapToMany, mapToValues } from './utils';
-import { UnauthorizedError } from './errors';
+import {
+  UnauthorizedError,
+  NotFoundError,
+  ForbiddenError,
+  ValidationError,
+} from './errors';
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 class Context {
+  errors = [];
   request: Request;
   user: any;
   t: Translator;
@@ -47,90 +48,98 @@ class Context {
       .then(mapTo(keys, x => x.id)),
   );
 
-  emailById = new DataLoader(keys =>
+  promoterById = new DataLoader(keys =>
     db
-      .table('emails')
+      .table('promoters')
       .whereIn('id', keys)
       .select()
       .then(mapTo(keys, x => x.id)),
   );
 
-  emailsByUserId = new DataLoader(keys =>
+  eventById = new DataLoader(keys =>
     db
-      .table('emails')
-      .whereIn('user_id', keys)
-      .select()
-      .then(mapToMany(keys, x => x.user_id)),
-  );
-
-  storyById = new DataLoader(keys =>
-    db
-      .table('stories')
+      .table('events')
       .whereIn('id', keys)
       .select()
       .then(mapTo(keys, x => x.id)),
   );
 
-  storyCommentsCount = new DataLoader(keys =>
+  ticketById = new DataLoader(keys =>
     db
-      .table('stories')
-      .leftJoin('comments', 'stories.id', 'comments.story_id')
-      .whereIn('stories.id', keys)
-      .groupBy('stories.id')
-      .select('stories.id', db.raw('count(comments.story_id)'))
-      .then(mapToValues(keys, x => x.id, x => x.count)),
-  );
-
-  storyPointsCount = new DataLoader(keys =>
-    db
-      .table('stories')
-      .leftJoin('story_points', 'stories.id', 'story_points.story_id')
-      .whereIn('stories.id', keys)
-      .groupBy('stories.id')
-      .select('stories.id', db.raw('count(story_points.story_id)'))
-      .then(mapToValues(keys, x => x.id, x => x.count)),
-  );
-
-  commentById = new DataLoader(keys =>
-    db
-      .table('comments')
+      .table('tickets')
       .whereIn('id', keys)
       .select()
       .then(mapTo(keys, x => x.id)),
   );
 
-  commentsByStoryId = new DataLoader(keys =>
+  offerById = new DataLoader(keys =>
     db
-      .table('comments')
-      .whereIn('story_id', keys)
+      .table('offers')
+      .whereIn('id', keys)
       .select()
-      .then(mapToMany(keys, x => x.story_id)),
+      .then(mapTo(keys, x => x.id)),
   );
 
-  commentsByParentId = new DataLoader(keys =>
+  orderById = new DataLoader(keys =>
     db
-      .table('comments')
+      .table('orders')
+      .whereIn('id', keys)
+      .select()
+      .then(mapTo(keys, x => x.id)),
+  );
+
+  ticketsByOrderId = new DataLoader(keys =>
+    db
+      .table('tickets')
+      .whereIn('order_id', keys)
+      .select()
+      .then(mapToMany(keys, x => x.order_id)),
+  );
+
+  taxonomyById = new DataLoader(keys =>
+    db
+      .table('taxonomies')
+      .whereIn('id', keys)
+      .select()
+      .then(mapTo(keys, x => x.id)),
+  );
+
+  taxonomiesByParentId = new DataLoader(keys =>
+    db
+      .table('taxonomies')
       .whereIn('parent_id', keys)
       .select()
       .then(mapToMany(keys, x => x.parent_id)),
   );
 
-  commentPointsCount = new DataLoader(keys =>
-    db
-      .table('comments')
-      .leftJoin('comment_points', 'comments.id', 'comment_points.comment_id')
-      .whereIn('comments.id', keys)
-      .groupBy('comments.id')
-      .select('comments.id', db.raw('count(comment_points.comment_id)'))
-      .then(mapToValues(keys, x => x.id, x => x.count)),
+  stripeCustomerByCustomerId = new DataLoader(keys =>
+    Promise.all(keys.map(key => stripe.customers.retrieve(key))),
+  );
+
+  stripeAccountByAccountId = new DataLoader(keys =>
+    Promise.all(keys.map(key => stripe.accounts.retrieve(key))),
   );
 
   /*
-   * Authenticatinon and permissions.
+   * Authentication and permissions.
    */
 
   ensureIsAuthenticated() {
     if (!this.user) throw new UnauthorizedError();
+  }
+
+  /*
+   * Authorization
+   * ------------------------------------------------------------------------ */
+
+  ensureIsAuthorized(check) {
+    if (!this.user) {
+      throw new UnauthorizedError();
+    }
+
+    if (check && !check(this.user)) {
+      throw new ForbiddenError();
+    }
   }
 }
 

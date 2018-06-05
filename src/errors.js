@@ -37,12 +37,17 @@ export class ValidationError extends Error {
 
 export class UnauthorizedError extends Error {
   code = 401;
-  message = this.message || 'Anonymous access is denied.';
+  message = this.message || 'Unauthorized.';
 }
 
 export class ForbiddenError extends Error {
   code = 403;
-  message = this.message || 'Access is denied.';
+  message = this.message || 'Forbidden.';
+}
+
+export class NotFoundError extends Error {
+  code = 404;
+  message = this.message || 'Not found.';
 }
 
 export default { report };

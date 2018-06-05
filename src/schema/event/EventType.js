@@ -3,10 +3,10 @@
 
 import {
   GraphQLObjectType,
-  GraphQLList,
-  GraphQLString,
   GraphQLNonNull,
+  GraphQLString,
   GraphQLInt,
+  GraphQLEnumType,
 } from 'graphql';
 import {
   globalIdField,
@@ -16,107 +16,124 @@ import {
   connectionDefinitions,
 } from 'graphql-relay';
 
-import { nodeInterface } from '../node';
-import db from '../../db';
 import type Context from '../../Context';
+import db from '../../db';
+import { nodeInterface } from '../node';
 import PromoterType from '../promoter/PromoterType';
+import OfferType from '../offer/OfferType';
 import OrderType from '../order/OrderType';
-import CardType from './CardType';
+import VenueType from './VenueType';
+import TaxonomyType from './TaxonomyType';
+import { ForbiddenError } from '../../errors';
 
-const UserType = new GraphQLObjectType({
-  name: 'User',
+const EventType = new GraphQLObjectType({
+  name: 'Event',
   interfaces: [nodeInterface],
 
   fields: () => ({
     id: globalIdField(),
 
-    firstName: {
+    name: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+
+    description: {
       type: GraphQLString,
-      resolve(user: any, args, ctx: Context) {
-        return user.first_name;
+    },
+
+    startDate: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve(parent) {
+        return parent.start_date.toISOString();
       },
     },
 
-    lastName: {
+    endDate: {
       type: GraphQLString,
-      resolve(user: any, args, ctx: Context) {
-        return user.id === ctx.user.id ? user.last_name : null;
+      resolve(parent) {
+        return parent.end_date.toISOString();
       },
     },
 
-    imageUrl: {
+    publishDate: {
       type: GraphQLString,
-      resolve(user: any, args, ctx: Context) {
-        return user.image_url;
+      resolve(parent) {
+        return parent.publish_date.toISOString();
       },
     },
 
-    locale: {
+    timezone: {
       type: GraphQLString,
     },
 
-    email: {
+    slug: {
       type: GraphQLString,
-      description: 'Email address associated with the user.',
-      resolve(user: any, args, ctx: Context) {
-        return user.id === ctx.user.id ? user.email : null;
+      description: 'Event slug',
+      resolve(parent) {
+        return parent.slug;
       },
     },
 
-    mobileNumber: {
+    status: {
       type: GraphQLString,
-      description: 'Mobile phone number associated with the user.',
-      resolve(user: any, args, ctx: Context) {
-        return user.id === ctx.user.id ? user.mobile_number : null;
+      resolve(event) {
+        return event.status;
       },
     },
 
-    promoters: {
+    venue: {
+      type: VenueType,
+      resolve(event) {
+        return event.venue;
+      },
+    },
+
+    type: {
+      type: TaxonomyType,
+      description: 'Category of the event',
+      resolve(event: any, args, ctx: Context) {
+        return ctx.taxonomyById.load(event.taxonomy_id);
+      },
+    },
+
+    promoter: {
+      type: new GraphQLNonNull(PromoterType),
+      description: 'The account the event belongs to',
+      resolve(parent, args, ctx: Context) {
+        return ctx.promoterById.load(parent.promoter_id);
+      },
+    },
+
+    offers: {
       type: connectionDefinitions({
-        name: 'UserPromoters',
-        description: 'A list of promoters the user belongs to.',
-        nodeType: PromoterType,
-        edgeFields: {
-          permission: {
-            type: GraphQLString,
-            resolve: edge => edge.node.permission,
-          },
-        },
+        name: 'EventOffers',
+        description: 'A list of offers for the event.',
+        nodeType: OfferType,
         connectionFields: {
           totalCount: { type: new GraphQLNonNull(GraphQLInt) },
         },
       }).connectionType,
       args: forwardConnectionArgs,
-      async resolve(user: any, args: any, ctx: Context) {
-        if (ctx.user.id !== user.id) {
-          return null;
-        }
+      async resolve(event: any, args: any, ctx: Context) {
+        ctx.ensureIsAuthenticated();
 
         const limit = typeof args.first === 'undefined' ? '10' : args.first;
         const offset = args.after ? cursorToOffset(args.after) + 1 : 0;
 
         const [data, totalCount] = await Promise.all([
           db
-            .table('promoters')
-            .innerJoin(
-              'promoter_members',
-              'promoters.id',
-              'promoter_members.promoter_id',
-            )
-            .where('promoter_members.user_id', ctx.user.id)
+            .table('offers')
+            .where('event_id', event.id)
             .orderBy('created_at', 'desc')
             .limit(limit)
             .offset(offset)
-            .then(rows =>
-              rows.map(row => {
-                ctx.promoterById.prime(row.id, row);
-                return row;
-              }),
-            ),
-
+            .then(rows => {
+              rows.forEach(x => ctx.offerById.prime(x.id, x));
+              return rows;
+            }),
           db
-            .table('promoter_members')
-            .where('user_id', ctx.user.id)
+            .table('offers')
+            .where('event_id', event.id)
             .count()
             .then(x => x[0].count),
         ]);
@@ -133,20 +150,16 @@ const UserType = new GraphQLObjectType({
 
     orders: {
       type: connectionDefinitions({
-        name: 'UserOrders',
-        description: 'A list of orders the user made.',
+        name: 'EventOrders',
+        description: 'A list of orders for the event.',
         nodeType: OrderType,
         connectionFields: {
           totalCount: { type: new GraphQLNonNull(GraphQLInt) },
         },
       }).connectionType,
       args: forwardConnectionArgs,
-      async resolve(user: any, args: any, ctx: Context) {
+      async resolve(event: any, args: any, ctx: Context) {
         ctx.ensureIsAuthenticated();
-
-        if (ctx.user.id !== user.id) {
-          return null;
-        }
 
         const limit = typeof args.first === 'undefined' ? '10' : args.first;
         const offset = args.after ? cursorToOffset(args.after) + 1 : 0;
@@ -154,7 +167,7 @@ const UserType = new GraphQLObjectType({
         const [data, totalCount] = await Promise.all([
           db
             .table('orders')
-            .where('user_id', user.id)
+            .where('event_id', event.id)
             .orderBy('created_at', 'desc')
             .limit(limit)
             .offset(offset)
@@ -164,7 +177,7 @@ const UserType = new GraphQLObjectType({
             }),
           db
             .table('orders')
-            .where('user_id', user.id)
+            .where('event_id', event.id)
             .count()
             .then(x => x[0].count),
         ]);
@@ -179,19 +192,20 @@ const UserType = new GraphQLObjectType({
       },
     },
 
-    paymentMethods: {
-      type: new GraphQLList(CardType),
-      async resolve(user: any, args: any, ctx: Context) {
-        if (!ctx.user || ctx.user.id !== user.id || !user.stripe_customer_id) {
-          return null;
-        }
-        const customer = await ctx.stripeCustomerByCustomerId.load(
-          user.stripe_customer_id,
-        );
-        return customer.sources.data;
+    createdAt: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve(parent) {
+        return parent.created_at.toISOString();
+      },
+    },
+
+    updatedAt: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve(parent) {
+        return parent.updated_at.toISOString();
       },
     },
   }),
 });
 
-export default UserType;
+export default EventType;
