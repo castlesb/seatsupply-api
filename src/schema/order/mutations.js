@@ -76,7 +76,7 @@ const checkout = mutationWithClientMutationId({
     try {
       const offer = await db
         .table('offers')
-        //.leftJoin('offer_statuses', 'offers.status_id', 'offer_statuses.id')
+        // .leftJoin('offer_statuses', 'offers.status_id', 'offer_statuses.id')
         .where({ id: offerId })
         .andWhere(builder =>
           builder
@@ -85,8 +85,8 @@ const checkout = mutationWithClientMutationId({
         )
         .first(
           'offers.*',
-          //'offer_statuses.id as status_id',
-          //'offer_statuses.name as status_name',
+          // 'offer_statuses.id as status_id',
+          // 'offer_statuses.name as status_name',
         );
 
       if (!offer) {
@@ -95,9 +95,9 @@ const checkout = mutationWithClientMutationId({
         );
       }
 
-      //if (offer.status !== 0) {
+      // if (offer.status !== 0) {
       // throw new Error(ctx.t(`The offer is ${offer.status_name}`));
-      //}
+      // }
 
       const event = await db
         .table('events')
@@ -117,7 +117,7 @@ const checkout = mutationWithClientMutationId({
       await db
         .table('offers')
         .where({ id: offer.id })
-        //.where({ status_id: 0 })
+        // .where({ status_id: 0 })
         .andWhere(builder =>
           builder
             .where('quantity', '=', data.quantity)
